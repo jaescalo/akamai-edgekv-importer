@@ -120,10 +120,9 @@ def call_ekv_api(item_id, payload, ekv_operation):
     url = f'{baseUrl}/edgekv/v1/networks/{network}/namespaces/{namespace_id}/groups/{group_id}/items/{item_id}'
 
     if ekv_operation == "delete": 
-        response = requests.delete(url, params=params)
+        response = session.delete(url, params=params)
     else:
-        response = requests.put(url, params=params, json=payload)
-
+        response = session.put(url, params=params, json=payload)
     return response
 
 
@@ -141,9 +140,9 @@ def call_edgeworker(upload_url, key, payload, ekv_operation):
     }
                             
     response = requests.post(upload_url, json=payload, headers=headers, verify=True)
-    # print(f"Response Status: {response.status_code}")
-    # print(f"Response Status: {response.headers}")
-    # print(f"Response Status: {response.content}")
+    print(f"Response Status: {response.status_code}")
+    print(f"Response Status: {response.headers}")
+    print(f"Response Status: {response.content}")
     return response
 
 def main():
