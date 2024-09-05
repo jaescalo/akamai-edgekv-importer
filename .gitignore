@@ -166,5 +166,4 @@ cython_debug/
 edgeworker/src/edgekv_tokens.js
 edgeworker/src/edgekv.js
 package.json
-akamai_apis.py
 example_input_10k.csv
