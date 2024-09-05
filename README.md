@@ -9,7 +9,7 @@ There are 2 modes of operation for writing/deleting to EdgeKV: `edgeworker` or `
 ### EdgeWorker Mode
 This mode leverages an EdgeWorker to perform the writes/deletes to EdgeKV. The main reason is because EdgeKV allows for more writes/deletes per second than the administrative API. See the [rate limits at techdocs.akamai.com](https://techdocs.akamai.com/edgekv/docs/limits)
 
-* An EdgeWorker is required for this mode and you can check the code in charge to writing/deleting to EdgeKV in `./edgeworker/main.js`. 
+* An EdgeWorker is required for this mode and you can check the code in charge of writing/deleting EdgeKV items in `./edgeworker/main.js`. 
 
 * To enable the EdgeWorker mode use the `--mode edgeworker` or `-m edgeworker` option. Examples below.
 
@@ -17,12 +17,36 @@ This mode leverages an EdgeWorker to perform the writes/deletes to EdgeKV. The m
 
 * Keep in mind that the `edgekv.js` [helper library](https://techdocs.akamai.com/edgekv/docs/library-helper-methods) and the `edgekv_tokens.js` [access tokens](https://techdocs.akamai.com/edgekv/docs/generate-and-retrieve-edgekv-access-tokens) are required for the EdgeWorker to successfully write/delete to EdgeKV. 
 
-**Test shows this method to be 10x faster**
+#### EdgeWorker Setup
+Follow the instructions to:
+1. [Create a new EdgeWorker ID](https://techdocs.akamai.com/edgeworkers/docs/create-an-edgeworker-id-1)
+2. [Add the EdgeWorker behavior to a property](https://techdocs.akamai.com/edgeworkers/docs/add-the-edgeworker-behavior-1). 
+    - By adding the EW behavior to the property any of the hostnames in the property can be used to trigger the EW.
+    - You can create any other conditions for the EdgeWorker behavior, for example a path match, header match, CIDR match, etc.
+    - For example, if the property serves the hostname www.example.com and you create a patch match condition for the '/upload' path for the EdgeWorker behavior. That means the EW can be triggered by going to https://www.example.com/upload. 
+      - **This will be the URL passed with the `-u` option.**
 
 ### API Mode
 This mode uses the Akamai APIs to perform the writes/deletes to EdgeKV. No EdgeWorker needs to be configured, however the write/delete speed is limited to the administrative API. See the [rate limits at techdocs.akamai.com](https://techdocs.akamai.com/edgekv/docs/limits)
 
 * To enable the API mode use the `--mode api` or `-m api` option. Examples below.
+
+## Important Variables
+### Environment Variables 
+- `namespace_id`: EdgeKV namespace id
+- `group_id`: EdgeKV group id
+- `account_key`: OPTIONAL. Akamai account ID to be used only if your API credentials allow for multi-account switching
+- `baseUrl`: uses the Akamai `host` credential to build the API 
+- `client_token`: Akamai `client_token` credential
+- `client_secret`: Akamai `client_secret` credential
+- `access_token`: Akamai `access_token` credential
+
+### Inline Variables
+- `network`: Akamai activation network (staging | production)
+- `mode_max_workers`: controls how many concurrent API calls are performed. Useful for keeping requests under the rate limits.
+
+In a future version of this tool the namespace_id, group_id, network and mode_max_workers may be available as options in the CLI instead. 
+
 
 ## CSV File
 The CSV must contain all the entries to import including the item id. Here's an example:
@@ -35,6 +59,9 @@ Andorra,AND,ca|es|fr,376
 Angola,AGO,pt,244
 ```
 In this particular example the first column is named `key`. And we will use this column as the item ID for EdgeKV.
+
+## Logging
+Execution output is logged to `edgekv_importer.log` which can be used to identify any entries that errored or any missing entries. 
 
 ## Usage
 

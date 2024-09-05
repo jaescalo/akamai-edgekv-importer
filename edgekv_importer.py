@@ -4,9 +4,10 @@ import os
 import csv
 import time
 import click
+import logging
 import requests 
-from concurrent.futures import ThreadPoolExecutor
 from akamai.edgegrid import EdgeGridAuth
+from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -24,7 +25,15 @@ session.auth = EdgeGridAuth(
     client_secret=os.environ.get('AKAMAI_CREDS_CLIENT_SECRET'),
     access_token=os.environ.get('AKAMAI_CREDS_ACCESS_TOKEN'),
     )
-    
+
+# Set up logging
+logging.basicConfig(
+    filename='edgekv_importer.log',
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 @click.command()
 @click.option('--mode', '-m', required=True, type=click.Choice(['api', 'edgeworker']), help='Write to EKV via the admin API or an EdgeWorker')
 @click.option('--filename', '-f', required=True, type=click.Path(exists=True), help='Path to the CSV file')
@@ -49,7 +58,7 @@ def ekv_bulk_actions(mode, filename, key_column, delete, upload_url):
     # - 1 per second if the item value size is 250 KB to less than 1MB
     # Limiting the max_workers=40 for the 'edgeworker' mode as it results in ~150 writes/second
     elif mode == 'edgeworker':
-        mode_max_workers = 40
+        mode_max_workers = 20
         if not upload_url:
             raise click.UsageError("--upload-url/-u is required when using the 'edgeworker' mode")
 
@@ -140,9 +149,13 @@ def call_edgeworker(upload_url, key, payload, ekv_operation):
     }
                             
     response = requests.post(upload_url, json=payload, headers=headers, verify=True)
-    print(f"Response Status: {response.status_code}")
-    print(f"Response Status: {response.headers}")
-    print(f"Response Status: {response.content}")
+
+    # Log the response status code
+    if response.status_code != 200:
+        logging.error(f"Error updating key '{key}' in EdgeKV. Status code: {response.status_code}")
+        logging.error(f"Payload: {payload}")
+    else:
+        logging.info(f"Successfully updated key '{key}' in EdgeKV. Status code: {response.status_code}")
     return response
 
 def main():
