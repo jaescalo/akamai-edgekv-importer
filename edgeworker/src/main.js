@@ -25,26 +25,25 @@ export async function responseProvider(request) {
     const group = request.getHeader('Ekv-group-id')[0];
     const item_id = request.getHeader('Ekv-item-id')[0];
     const ekv_operation = request.getHeader('Ekv-operation')[0];
-    logger.log("Item ID = %s", item_id);
+    logger.debug("Item ID = %s", item_id);
 
     // Set up the EdgeKV
     const edgeKv = new EdgeKV({ namespace: namespace, group: group });
 
     // Read and decode the request body
     const requestBody = await readRequestBody(request);
-    // logger.log("Body snippet: " + requestBody.slice(0, 100) + "..."); // Log the first 100 characters for a sanity check
 
     try {
         if ( ekv_operation == "delete" ) {
             await edgeKv.deleteNoWait({ item: item_id });
-            logger.log("Delete result = Success");
+            logger.debug("Delete result = Success");
         } else {
             // Store the requestBody directly as the value
             await edgeKv.putTextNoWait({ item: item_id, value: requestBody });
-            logger.log("Upload result = Success");
+            logger.debug("Upload result = Success");
         }
     } catch (error) {
-        logger.log("Error during upload = %s", error);
+        logger.debug("Error during upload = %s", error);
         // Return an error response to the client
         return createResponse(
             500, 

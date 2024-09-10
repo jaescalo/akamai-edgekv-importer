@@ -163,7 +163,7 @@ cython_debug/
 
 # Custom
 .DS_Store
+.gitignore
 edgeworker/src/edgekv_tokens.js
 edgeworker/src/edgekv.js
 package.json
-example_input_10k.csv

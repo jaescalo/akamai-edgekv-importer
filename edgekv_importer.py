@@ -15,7 +15,7 @@ load_dotenv()
 # Get all the necessary env variables
 namespace_id = os.environ.get('AKAMAI_EKV_NAMESPACE_ID')
 group_id = os.environ.get('AKAMAI_EKV_GROUP_ID')
-network = "production"
+network = "production"  # Only for the API method. The EW method will always go to prod
 
 account_key = os.environ.get('AKAMAI_CREDS_ACCOUNT_KEY')
 baseUrl = "https://{host}".format(host=os.environ.get('AKAMAI_CREDS_HOST'))
